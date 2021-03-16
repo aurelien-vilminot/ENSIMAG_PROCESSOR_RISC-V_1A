@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_TMDSEncoder_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="hdmi_pkg" />
+            <top_module name="tb_TMDSEncoder" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="7245447141976fs"></ZoomStartTime>
+      <ZoomEndTime time="7245536290126fs"></ZoomEndTime>
+      <Cursor1Time time="7245462000000fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="175"></NameColumnWidth>
+      <ValueColumnWidth column_width="78"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="15" />
+   <wvobject fp_name="/tb_TMDSEncoder/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_TMDSEncoder/fast_clk" type="logic">
+      <obj_property name="ElementShortName">fast_clk</obj_property>
+      <obj_property name="ObjectShortName">fast_clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_TMDSEncoder/reset" type="logic">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider67">
+      <obj_property name="label">Output</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_TMDSEncoder/q_out" type="array">
+      <obj_property name="ElementShortName">q_out[9:0]</obj_property>
+      <obj_property name="ObjectShortName">q_out[9:0]</obj_property>
+      <obj_property name="Radix">BINARYRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_TMDSEncoder/q" type="logic">
+      <obj_property name="ElementShortName">q</obj_property>
+      <obj_property name="ObjectShortName">q</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider64">
+      <obj_property name="label">Data</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_TMDSEncoder/D_video" type="array">
+      <obj_property name="ElementShortName">D_video[7:0]</obj_property>
+      <obj_property name="ObjectShortName">D_video[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_TMDSEncoder/D_control" type="array">
+      <obj_property name="ElementShortName">D_control[1:0]</obj_property>
+      <obj_property name="ObjectShortName">D_control[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_TMDSEncoder/D_auxiliary" type="array">
+      <obj_property name="ElementShortName">D_auxiliary[3:0]</obj_property>
+      <obj_property name="ObjectShortName">D_auxiliary[3:0]</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider65">
+      <obj_property name="label">Video Signal</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_TMDSEncoder/C_TMDSEncoder/video/ce" type="other">
+      <obj_property name="ElementShortName">ce</obj_property>
+      <obj_property name="ObjectShortName">ce</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_TMDSEncoder/C_TMDSEncoder/video/D" type="array">
+      <obj_property name="ElementShortName">D[7:0]</obj_property>
+      <obj_property name="ObjectShortName">D[7:0]</obj_property>
+      <obj_property name="Radix">BINARYRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_TMDSEncoder/C_TMDSEncoder/video/q_out" type="array">
+      <obj_property name="ElementShortName">q_out[9:0]</obj_property>
+      <obj_property name="ObjectShortName">q_out[9:0]</obj_property>
+      <obj_property name="Radix">BINARYRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_TMDSEncoder/C_TMDSEncoder/video/cnt_q" type="array">
+      <obj_property name="ElementShortName">cnt_q[3:0]</obj_property>
+      <obj_property name="ObjectShortName">cnt_q[3:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+   </wvobject>
+</wave_config>

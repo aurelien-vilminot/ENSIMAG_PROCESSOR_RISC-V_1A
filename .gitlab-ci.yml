@@ -1,0 +1,46 @@
+# Gitlab ci/cd file configuration 
+
+variables:
+    OPT: "-k"
+    REF: "master"
+    TOSOURCE: "/bigsoft/Xilinx/Vivado/2019.1/settings64.sh"
+    TOOLCHAIN_PATH: "/opt/riscv-cep-tools/bin"
+    TOCLEAN: "vhd bin program config .git .gitlab-ci.yml"
+
+stages:
+    - test
+    - eval
+    - cleanup
+
+       
+student_test:
+    stage: test 
+    script:
+        - source ${TOSOURCE} 
+        - make clean
+        - TOOLCHAIN_DIR=${TOOLCHAIN_PATH} make autotest
+    artifacts:
+        paths:
+            - vhd
+            - program/autotest
+            - program/sequence_tag
+            - autotest.res
+    only:
+        - master
+        
+trigger_eval:
+    dependencies: 
+        - student_test
+    stage: eval
+    script:
+        - rm -rvf ${TOCLEAN}
+        - curl $OPT --request POST --form "token=${EVAL_TOKEN}" --form ref=${REF} ${REP}/api/v4/projects/${EVAL_PROJECT_ID}/trigger/pipeline
+    only:
+        - master
+
+cleanup_job:
+    stage: cleanup
+    script:
+        - echo "On failure job -> cleaning sensitive datas"
+        - rm -rvf ${TOCLEAN}
+    when: on_failure

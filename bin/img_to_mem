@@ -1,0 +1,12 @@
+#!/bin/bash
+if [ $# -eq 0 ];
+then
+echo "usage : img_to_mem video.jpg video.mem"
+exit -1
+fi
+
+fname=$1
+fdest=$2
+
+convert ${fname} -resize 320x240 -extent 320x240 -depth 6 -colorspace RGB -compress none ppm:- | awk 'BEGIN {printf "@00000000\n"} NR>3 {for (r=1;r<=NF;r+=3) { v=0; g=r+1;b=r+2; v=lshift(rshift($r,3),11) + lshift(rshift($g,2),5) + rshift($b,3) ; printf "%04x\n", v;}}' > $fdest
+
