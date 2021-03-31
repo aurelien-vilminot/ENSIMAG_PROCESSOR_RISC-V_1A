@@ -11,3 +11,5 @@ LUI
 OR
 SLL
 SUB
+BEQ
+SLT
