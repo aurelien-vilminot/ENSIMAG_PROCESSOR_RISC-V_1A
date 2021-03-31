@@ -31,13 +31,15 @@ architecture RTL of CPU_PC is
         S_LUI,
         S_ADDI,
         S_ADD,
+        S_SUB,
         S_AND,
         S_OR,
         S_XOR,
         S_ORI,
         S_SLL,
         S_AUIPC,
-        S_ANDI
+        S_ANDI,
+        S_suivBR
     );
 
     signal state_d, state_q : State_type;
@@ -137,12 +139,17 @@ begin
                     cmd.PC_sel <= PC_from_pc;
                     cmd.PC_we <= '1';
                     state_d <= S_ADDI; 
-                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "000" then
+                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "000" AND status.IR(31 downto 25) = "0000000" then
                     cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
                     cmd.PC_sel <= PC_from_pc;
                     cmd.PC_we <= '1';
                     state_d <= S_ADD;
-                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "111" then
+                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "000" AND status.IR(31 downto 25) = "0100000" then
+                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
+                    cmd.PC_sel <= PC_from_pc;
+                    cmd.PC_we <= '1';
+                    state_d <= S_SUB;
+                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "111" AND status.IR(31 downto 25) = "0000000" then
                     cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
                     cmd.PC_sel <= PC_from_pc;
                     cmd.PC_we <= '1';
@@ -152,7 +159,7 @@ begin
                     cmd.PC_sel <= PC_from_pc;
                     cmd.PC_we <= '1';
                     state_d <= S_ANDI;
-                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "110" then
+                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "110" AND status.IR(31 downto 25) = "0000000" then
                     cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
                     cmd.PC_sel <= PC_from_pc;
                     cmd.PC_we <= '1';
@@ -162,20 +169,17 @@ begin
                     cmd.PC_sel <= PC_from_pc;
                     cmd.PC_we <= '1';
                     state_d <= S_ORI;
-                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "100" then
+                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "100" AND status.IR(31 downto 25) = "0000000" then
                     cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
                     cmd.PC_sel <= PC_from_pc;
                     cmd.PC_we <= '1';
                     state_d <= S_XOR;
-                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "001" then
+                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "001" AND status.IR(31 downto 25) = "0000000" then
                     cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
                     cmd.PC_sel <= PC_from_pc;
                     cmd.PC_we <= '1';
                     state_d <= S_SLL;
                 elsif status.IR(6 downto 0) = "0010111" then
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
                     state_d <= S_AUIPC;
                 else
                     state_d <= S_Error;
@@ -229,6 +233,21 @@ begin
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
 
+                -- next state
+                state_d <= S_Fetch;
+
+            when S_SUB =>
+                --rd <- rs1 - rs2
+                cmd.ALU_Y_sel <= ALU_Y_rf_rs2;
+                cmd.ALU_op <= ALU_minus;
+                cmd.DATA_sel <= DATA_from_alu;
+                cmd.RF_we <= '1';
+        
+                -- lecture mem[PC]
+                cmd.ADDR_sel <= ADDR_from_pc;
+                cmd.mem_ce <= '1';
+                cmd.mem_we <= '0';
+        
                 -- next state
                 state_d <= S_Fetch;
 
@@ -321,21 +340,23 @@ begin
                 
                 --next state
                 state_d <= S_Fetch;
+
             when S_AUIPC =>
                 --decalage à gauche, rd reçoit rs1 << rs2
                 cmd.PC_X_sel <= PC_X_pc;
                 cmd.PC_Y_sel <= PC_Y_immU;
                 cmd.DATA_sel <= DATA_from_pc;
                 cmd.RF_we <= '1';
-
-                -- lecture mem[PC]
-                cmd.ADDR_sel <= ADDR_from_pc;
-                cmd.mem_ce <= '1';
-                cmd.mem_we <= '0';
                 
                 --next state
-                state_d <= S_Fetch;
-                    
+                state_d <= S_Pre_Fetch;
+
+                --On oublie pas d'incrémenter PC
+                cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
+                cmd.PC_sel <= PC_from_pc;
+                cmd.PC_we <= '1';
+
+
 ---------- Instructions de saut ----------
 
 ---------- Instructions de chargement à partir de la mémoire ----------
