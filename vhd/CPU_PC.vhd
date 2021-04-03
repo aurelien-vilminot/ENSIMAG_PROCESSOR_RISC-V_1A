@@ -34,13 +34,19 @@ architecture RTL of CPU_PC is
         S_SUB,
         S_AND,
         S_OR,
-        S_XOR,
         S_ORI,
+        S_XOR,
+        S_XORI,
         S_SLL,
+        S_SLLI,
+        S_SRL,
+        S_SRLI,
+        S_SRA,
+        S_SRAI,
         S_AUIPC,
         S_ANDI,
         S_BEQ,
-        S_SLT
+        S_SLT 
     );
 
     signal state_d, state_q : State_type;
@@ -189,6 +195,36 @@ begin
                     cmd.PC_sel <= PC_from_pc;
                     cmd.PC_we <= '1';
                     state_d <= S_SLT;
+                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "101" AND status.IR(31 downto 25) = "0000000" then
+                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
+                    cmd.PC_sel <= PC_from_pc;
+                    cmd.PC_we <= '1';
+                    state_d <= S_SRL;
+                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "101" AND status.IR(31 downto 25) = "0100000" then
+                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
+                    cmd.PC_sel <= PC_from_pc;
+                    cmd.PC_we <= '1';
+                    state_d <= S_SRA;
+                elsif status.IR(6 downto 0) = "0010011" AND status.IR(14 downto 12) = "100" then
+                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
+                    cmd.PC_sel <= PC_from_pc;
+                    cmd.PC_we <= '1';
+                    state_d <= S_XORI;
+                elsif status.IR(6 downto 0) = "0010011" AND status.IR(14 downto 12) = "101" AND status.IR(31 downto 25) = "0100000" then
+                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
+                    cmd.PC_sel <= PC_from_pc;
+                    cmd.PC_we <= '1';
+                    state_d <= S_SRAI;
+                elsif status.IR(6 downto 0) = "0010011" AND status.IR(14 downto 12) = "001" AND status.IR(31 downto 25) = "0000000" then
+                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
+                    cmd.PC_sel <= PC_from_pc;
+                    cmd.PC_we <= '1';
+                    state_d <= S_SLLI;
+                elsif status.IR(6 downto 0) = "0010011" AND status.IR(14 downto 12) = "101" AND status.IR(31 downto 25) = "0000000" then
+                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
+                    cmd.PC_sel <= PC_from_pc;
+                    cmd.PC_we <= '1';
+                    state_d <= S_SRLI;
                 else
                     state_d <= S_Error;
                 end if;
@@ -320,8 +356,23 @@ begin
 
 
             when S_XOR =>
-                --rd <- rs1 + imm
+                --rd <- rs1 xor imm
                 cmd.ALU_Y_sel <= ALU_Y_rf_rs2;
+                cmd.LOGICAL_op <= LOGICAL_xor;
+                cmd.DATA_sel <= DATA_from_logical;
+                cmd.RF_we <= '1';
+
+                -- lecture mem[PC]
+                cmd.ADDR_sel <= ADDR_from_pc;
+                cmd.mem_ce <= '1';
+                cmd.mem_we <= '0';
+
+                -- next state
+                state_d <= S_Fetch;
+            
+            when S_XORI =>
+                --rd <- rs1 xor imm
+                cmd.ALU_Y_sel <= ALU_Y_immI;
                 cmd.LOGICAL_op <= LOGICAL_xor;
                 cmd.DATA_sel <= DATA_from_logical;
                 cmd.RF_we <= '1';
@@ -338,6 +389,81 @@ begin
                 --decalage à gauche, rd reçoit rs1 << rs2
                 cmd.SHIFTER_Y_sel <= SHIFTER_Y_rs2;
                 cmd.SHIFTER_op <= SHIFT_ll;
+                cmd.DATA_sel <= DATA_from_shifter;
+                cmd.RF_we <= '1';
+
+                -- lecture mem[PC]
+                cmd.ADDR_sel <= ADDR_from_pc;
+                cmd.mem_ce <= '1';
+                cmd.mem_we <= '0';
+                
+                --next state
+                state_d <= S_Fetch;
+            
+            when S_SLLI =>
+                --decalage à gauche, rd reçoit rs1 << imm
+                cmd.SHIFTER_Y_sel <= SHIFTER_Y_ir_sh;
+                cmd.SHIFTER_op <= SHIFT_ll;
+                cmd.DATA_sel <= DATA_from_shifter;
+                cmd.RF_we <= '1';
+
+                -- lecture mem[PC]
+                cmd.ADDR_sel <= ADDR_from_pc;
+                cmd.mem_ce <= '1';
+                cmd.mem_we <= '0';
+                
+                --next state
+                state_d <= S_Fetch;
+
+            when S_SRL =>
+                --decalage à droite, rd reçoit rs1 >> rs2
+                cmd.SHIFTER_Y_sel <= SHIFTER_Y_rs2;
+                cmd.SHIFTER_op <= SHIFT_rl;
+                cmd.DATA_sel <= DATA_from_shifter;
+                cmd.RF_we <= '1';
+
+                -- lecture mem[PC]
+                cmd.ADDR_sel <= ADDR_from_pc;
+                cmd.mem_ce <= '1';
+                cmd.mem_we <= '0';
+                
+                --next state
+                state_d <= S_Fetch;
+
+            when S_SRLI =>
+                --decalage à droite, rd reçoit rs1 >> imm
+                cmd.SHIFTER_Y_sel <= SHIFTER_Y_ir_sh;
+                cmd.SHIFTER_op <= SHIFT_rl;
+                cmd.DATA_sel <= DATA_from_shifter;
+                cmd.RF_we <= '1';
+
+                -- lecture mem[PC]
+                cmd.ADDR_sel <= ADDR_from_pc;
+                cmd.mem_ce <= '1';
+                cmd.mem_we <= '0';
+                
+                --next state
+                state_d <= S_Fetch;
+
+            when S_SRA =>
+                --decalage à droite arithmétique, rd reçoit rs1 >> rs2
+                cmd.SHIFTER_Y_sel <= SHIFTER_Y_rs2;
+                cmd.SHIFTER_op <= SHIFT_ra;
+                cmd.DATA_sel <= DATA_from_shifter;
+                cmd.RF_we <= '1';
+
+                -- lecture mem[PC]
+                cmd.ADDR_sel <= ADDR_from_pc;
+                cmd.mem_ce <= '1';
+                cmd.mem_we <= '0';
+                
+                --next state
+                state_d <= S_Fetch;
+            
+            when S_SRAI =>
+                --decalage à droite arithmétique, rd reçoit rs1 >> imm
+                cmd.SHIFTER_Y_sel <= SHIFTER_Y_ir_sh;
+                cmd.SHIFTER_op <= SHIFT_ra;
                 cmd.DATA_sel <= DATA_from_shifter;
                 cmd.RF_we <= '1';
 
@@ -387,8 +513,7 @@ begin
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
 
-                state_d <= S_Fetch;
-
+                state_d <= S_Fetch;            
 
 ---------- Instructions de saut ----------
 
