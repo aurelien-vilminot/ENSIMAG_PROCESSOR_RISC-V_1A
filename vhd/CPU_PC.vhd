@@ -40,7 +40,8 @@ architecture RTL of CPU_PC is
         S_AUIPC,
         S_ANDI,
         S_BEQ,
-        S_SLT
+        S_SLT,
+        S_SLTI
     );
 
     signal state_d, state_q : State_type;

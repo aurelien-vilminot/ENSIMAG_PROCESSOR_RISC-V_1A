@@ -28,6 +28,9 @@ architecture RTL of CPU_CND is
 begin
     rs1_ext <= signed('1'&rs1) when ext='1' AND rs1(31)='1' else signed('0'&rs1);
     ALU_Y_ext <= signed('1'&alu_y) when ext ='1' AND rs1(31)='1' else signed('0'&alu_y);
+	-- A relire ce qui est au dessus, s'assurer que c'est bon !!!!!!
+
+
         -- if ext = '1' then
         --     if rs1(31) = "1" then
         --         rs1_ext <= "1"&rs1;
