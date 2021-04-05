@@ -23,31 +23,21 @@ end entity;
 
 architecture RTL of CPU_PC is
     type State_type is (
-        S_Error,
-        S_Init,
-        S_Pre_Fetch,
-        S_Fetch,
-        S_Decode,
+        -- Etats de base de l'automate
+        S_Error, S_Init, S_Pre_Fetch, S_Fetch, S_Decode,
+        -- Chargement d'état
         S_LUI,
-        S_ADDI,
-        S_ADD,
-        S_SUB,
-        S_AND,
-        S_OR,
-        S_ORI,
-        S_XOR,
-        S_XORI,
-        S_SLL,
-        S_SLLI,
-        S_SRL,
-        S_SRLI,
-        S_SRA,
-        S_SRAI,
+        -- ALU sans IMM
+        S_ADD, S_SUB, S_AND, S_OR, S_XOR,
+        -- ALU avec IMM
+        S_ORI, S_XORI, S_ANDI, S_ADDI,
+        -- Décalages
+        S_SLL, S_SLLI, S_SRL, S_SRLI, S_SRA, S_SRAI,
+        -- Sauts
+        S_BEQ, S_BNE, S_BLT, S_BGE, S_BLTU, S_BGEU,
         S_AUIPC,
-        S_ANDI,
-        S_BEQ,
-        S_SLT,
-        S_SLTI
+        -- Comparaisons
+        S_SLT,S_SLTI
     );
 
     signal state_d, state_q : State_type;
@@ -142,90 +132,83 @@ begin
                     cmd.PC_sel <= PC_from_pc;
                     cmd.PC_we <= '1';
                     state_d <= S_LUI;
-                elsif status.IR(6 downto 0) = "0010011" and status.IR(14 downto 12) = "000" then
+                -------------------------------------------------------------------
+                -----------------Arithm, logique, décalages sans IMM---------------
+                -------------------------------------------------------------------
+                elsif status.IR(6 downto 0) = "0110011"  then
                     cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
                     cmd.PC_sel <= PC_from_pc;
                     cmd.PC_we <= '1';
-                    state_d <= S_ADDI; 
-                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "000" AND status.IR(31 downto 25) = "0000000" then
+                    if status.IR(31 downto 25) = "0000000" then
+                        if status.IR(14 downto 12) = "100" then
+                            state_d <= S_XOR;
+                        elsif status.IR(14 downto 12) = "110" then
+                            state_d <= S_OR;
+                        elsif status.IR(14 downto 12) = "111" then
+                            state_d <= S_AND;
+                        elsif status.IR(14 downto 12) = "000" then
+                            state_d <= S_ADD;
+                        elsif status.IR(14 downto 12) = "001" then
+                            state_d <= S_SLL;
+                        elsif status.IR(14 downto 12) = "010" then
+                            state_d <= S_SLT;
+                        elsif status.IR(14 downto 12) = "101" then
+                            state_d <= S_SRL;
+                        end if;
+                    elsif status.IR(31 downto 25) = "0100000" then
+                        if status.IR(14 downto 12) = "101" then
+                            state_d <= S_SRA;
+                        elsif status.IR(14 downto 12) = "000" then
+                            state_d <= S_SUB;
+                        end if;
+                    end if;
+                -------------------------------------------------------------------
+                ----------------Arithm, logique, décalages avec IMM----------------
+                -------------------------------------------------------------------
+                elsif status.IR(6 downto 0) = "0010011" then
                     cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
                     cmd.PC_sel <= PC_from_pc;
                     cmd.PC_we <= '1';
-                    state_d <= S_ADD;
-                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "000" AND status.IR(31 downto 25) = "0100000" then
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
-                    state_d <= S_SUB;
-                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "111" AND status.IR(31 downto 25) = "0000000" then
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
-                    state_d <= S_AND;
-                elsif status.IR(6 downto 0) = "0010011" AND status.IR(14 downto 12) = "111" then
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
-                    state_d <= S_ANDI;
-                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "110" AND status.IR(31 downto 25) = "0000000" then
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
-                    state_d <= S_OR;
-                elsif status.IR(6 downto 0) = "0010011" AND status.IR(14 downto 12) = "110" then
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
-                    state_d <= S_ORI;
-                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "100" AND status.IR(31 downto 25) = "0000000" then
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
-                    state_d <= S_XOR;
-                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "001" AND status.IR(31 downto 25) = "0000000" then
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
-                    state_d <= S_SLL;
+                    if status.IR(14 downto 12) = "000" then
+                        state_d <= S_ADDI;
+                    elsif status.IR(14 downto 12) = "110" then
+                        state_d <= S_ORI;
+                    elsif status.IR(14 downto 12) = "111" then
+                        state_d <= S_ANDI;
+                    elsif status.IR(14 downto 12) = "100" then
+                        state_d <= S_XORI;
+                    elsif status.IR(31 downto 25) = "0000000" then
+                        if status.IR(14 downto 12) = "001" then
+                            state_d <= S_SLLI;
+                        elsif status.IR(14 downto 12) = "101" then
+                            state_d <= S_SRLI;
+                        end if;
+                    elsif status.IR(31 downto 25) = "0100000" then
+                        if status.IR(14 downto 12) = "101" then
+                            state_d <= S_SRAI;
+                        end if;
+                    end if;
+                -------------------------------------------------------------------
+                ------------------------Sauts conditionnels------------------------
+                -------------------------------------------------------------------
                 elsif status.IR(6 downto 0) = "0010111" then
                     state_d <= S_AUIPC;
-                elsif status.IR(6 downto 0) = "1100011" AND status.IR(14 downto 12) = "000" then
-                    state_d <= S_BEQ;
-                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "010" AND status.IR(31 downto 25) = "0000000" then
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
-                    state_d <= S_SLT;
-                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "101" AND status.IR(31 downto 25) = "0000000" then
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
-                    state_d <= S_SRL;
-                elsif status.IR(6 downto 0) = "0110011" AND status.IR(14 downto 12) = "101" AND status.IR(31 downto 25) = "0100000" then
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
-                    state_d <= S_SRA;
-                elsif status.IR(6 downto 0) = "0010011" AND status.IR(14 downto 12) = "100" then
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
-                    state_d <= S_XORI;
-                elsif status.IR(6 downto 0) = "0010011" AND status.IR(14 downto 12) = "101" AND status.IR(31 downto 25) = "0100000" then
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
-                    state_d <= S_SRAI;
-                elsif status.IR(6 downto 0) = "0010011" AND status.IR(14 downto 12) = "001" AND status.IR(31 downto 25) = "0000000" then
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
-                    state_d <= S_SLLI;
-                elsif status.IR(6 downto 0) = "0010011" AND status.IR(14 downto 12) = "101" AND status.IR(31 downto 25) = "0000000" then
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
-                    state_d <= S_SRLI;
+                elsif status.IR(6 downto 0) = "1100011" then
+                    if status.IR(14 downto 12) = "000" then
+                        state_d <= S_BEQ;
+                    elsif status.IR(14 downto 12) = "001" then
+                        state_d <= S_BNE;
+                    elsif status.IR(14 downto 12) = "100" then
+                        state_d <= S_BLT;
+                    elsif status.IR(14 downto 12) = "101" then
+                        state_d <= S_BGE;
+                    elsif status.IR(14 downto 12) = "110" then
+                        state_d <= S_BLTU;
+                    elsif status.IR(14 downto 12) = "111" then
+                        state_d <= S_BGEU;
+                    end if;  
+                -------------------------------------------------------------------
+                -------------------------------------------------------------------          
                 else
                     state_d <= S_Error;
                 end if;
@@ -491,20 +474,6 @@ begin
                 cmd.PC_sel <= PC_from_pc;
                 cmd.PC_we <= '1';
 
-            when S_BEQ =>
-                if status.jcond then
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_immB;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
-                else
-                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-                    cmd.PC_sel <= PC_from_pc;
-                    cmd.PC_we <= '1';
-                end if;
-                
-                cmd.ALU_Y_sel <= ALU_Y_rf_rs2;
-                state_d <= S_Pre_Fetch;
-
             when S_SLT =>
                 cmd.DATA_sel <= DATA_from_slt;
                 cmd.RF_we <= '1';
@@ -517,6 +486,34 @@ begin
                 state_d <= S_Fetch;            
 
 ---------- Instructions de saut ----------
+
+            when S_BEQ|S_BNE|S_BLT|S_BGE|S_BLTU|S_BGEU =>
+                if status.jcond then
+                    cmd.TO_PC_Y_sel <= TO_PC_Y_immB;
+                    cmd.PC_sel <= PC_from_pc;
+                    cmd.PC_we <= '1';
+                else
+                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
+                    cmd.PC_sel <= PC_from_pc;
+                    cmd.PC_we <= '1';
+                end if;
+                cmd.ALU_Y_sel <= ALU_Y_rf_rs2;
+                state_d <= S_Pre_Fetch;
+
+            -- when S_BNE =>
+            --     if status.jcond then
+            --         cmd.TO_PC_Y_sel <= TO_PC_Y_immB;
+            --         cmd.PC_sel <= PC_from_pc;
+            --         cmd.PC_we <= '1';
+            --     else
+            --         cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
+            --         cmd.PC_sel <= PC_from_pc;
+            --         cmd.PC_we <= '1';
+            --     end if;
+            --     cmd.ALU_Y_sel <= ALU_Y_rf_rs2;
+            --     state_d <= S_Pre_Fetch;
+
+
 
 ---------- Instructions de chargement à partir de la mémoire ----------
 
