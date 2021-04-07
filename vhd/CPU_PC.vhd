@@ -35,9 +35,9 @@ architecture RTL of CPU_PC is
         S_SLL, S_SLLI, S_SRL, S_SRLI, S_SRA, S_SRAI,
         -- Sauts
         S_BEQ, S_BNE, S_BLT, S_BGE, S_BLTU, S_BGEU,
-        S_AUIPC,
+        S_AUIPC, S_JAL, S_JALR,
         -- Comparaisons
-        S_SLT,S_SLTI,
+        S_SLT, S_SLTI,
         -- Accès mémoire 
         S_LW_0, S_LW_1, S_LW_2, S_SW_0, S_SW_1, S_SW_2
     );
@@ -179,6 +179,8 @@ begin
                         state_d <= S_ANDI;
                     elsif status.IR(14 downto 12) = "100" then
                         state_d <= S_XORI;
+                    elsif status.IR(14 downto 12) = "010" then
+                        state_d <= S_SLTI;
                     elsif status.IR(31 downto 25) = "0000000" then
                         if status.IR(14 downto 12) = "001" then
                             state_d <= S_SLLI;
@@ -211,15 +213,17 @@ begin
                     end if; 
                 elsif status.IR(6 downto 0) = "1101111" then
                     state_d <= S_JAL;
+                elsif status.IR(6 downto 0) = "1100111" then
+                    state_d <= S_JALR;
                 -------------------------------------------------------------------
                 ------------------------Accès mémoire------------------------------
                 -------------------------------------------------------------------
-                elsif status.IR(6 downto 0) = "0000011" AND status.IR(14 downto 12) = "010" then
+                elsif status.IR(6 downto 0) = "0000011" then
                     cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
                     cmd.PC_sel <= PC_from_pc;
                     cmd.PC_we <= '1';
                     state_d <= S_LW_0;
-                elsif status.IR(6 downto 0) = "0100011" AND status.IR(14 downto 12) = "010" then
+                elsif status.IR(6 downto 0) = "0100011" then
                     cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
                     cmd.PC_sel <= PC_from_pc;
                     cmd.PC_we <= '1';
@@ -500,6 +504,17 @@ begin
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
 
+                state_d <= S_Fetch;      
+            
+            when S_SLTI =>
+                cmd.DATA_sel <= DATA_from_slt;
+                cmd.RF_we <= '1';
+                cmd.ALU_Y_sel <= ALU_Y_immI;
+
+                cmd.ADDR_sel <= ADDR_from_pc;
+                cmd.mem_ce <= '1';
+                cmd.mem_we <= '0';
+
                 state_d <= S_Fetch;            
 
 ---------- Instructions de saut ----------
@@ -517,18 +532,29 @@ begin
                 cmd.ALU_Y_sel <= ALU_Y_rf_rs2;
                 state_d <= S_Pre_Fetch;
 
-            -- when S_BNE =>
-            --     if status.jcond then
-            --         cmd.TO_PC_Y_sel <= TO_PC_Y_immB;
-            --         cmd.PC_sel <= PC_from_pc;
-            --         cmd.PC_we <= '1';
-            --     else
-            --         cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
-            --         cmd.PC_sel <= PC_from_pc;
-            --         cmd.PC_we <= '1';
-            --     end if;
-            --     cmd.ALU_Y_sel <= ALU_Y_rf_rs2;
-            --     state_d <= S_Pre_Fetch;
+            when S_JAL =>
+                -- rd <= pc + 4
+                cmd.PC_X_sel <= PC_X_pc;
+                cmd.PC_Y_sel <= PC_Y_cst_x04;
+                cmd.DATA_sel <= DATA_from_pc;
+                cmd.RF_we <= '1';
+                -- pc <= pc + immJ
+                cmd.TO_PC_Y_sel <= TO_PC_Y_immJ;
+                cmd.PC_sel <= PC_from_pc;
+                cmd.PC_we <= '1';
+                state_d <= S_Pre_Fetch;
+            when S_JALR =>
+                -- rd <= pc + 4
+                cmd.PC_X_sel <= PC_X_pc;
+                cmd.PC_Y_sel <= PC_Y_cst_x04;
+                cmd.DATA_sel <= DATA_from_pc;
+                cmd.RF_we <= '1';
+                -- pc <= pc + immJ
+                cmd.ALU_Y_sel <= ALU_Y_immI;
+                cmd.ALU_op <= ALU_plus;
+                cmd.PC_sel <= PC_from_alu;
+                cmd.PC_we <= '1';
+                state_d <= S_Pre_Fetch;
 
 
 
@@ -551,7 +577,24 @@ begin
             -- On écrit dans les registres
                 cmd.DATA_sel <= DATA_from_mem;
                 cmd.RF_we <= '1';
-                cmd.RF_SIZE_sel <= RF_SIZE_word;
+                -- LW
+                if status.IR(14 downto 12) = "010" then
+                    cmd.RF_SIZE_sel <= RF_SIZE_word;
+                -- LB
+                elsif status.IR(14 downto 12) = "000" then
+                    cmd.RF_SIZE_sel <= RF_SIZE_byte;
+                -- LBU
+                elsif status.IR(14 downto 12) = "100" then
+                    cmd.RF_SIZE_sel <= RF_SIZE_byte;
+                    cmd.RF_SIGN_ENABLE <= '1';
+                -- LH
+                elsif status.IR(14 downto 12) = "001" then
+                    cmd.RF_SIZE_sel <= RF_SIZE_half;
+                -- LHU
+                elsif status.IR(14 downto 12) = "101" then
+                    cmd.RF_SIZE_sel <= RF_SIZE_half;
+                    cmd.RF_SIGN_ENABLE <= '1';
+                end if;
                 state_d <= S_Pre_Fetch;
 
 ---------- Instructions de sauvegarde en mémoire ----------
@@ -571,7 +614,16 @@ begin
 
             when S_SW_2 =>
                 cmd.RF_SIGN_enable <= '0';
-                cmd.RF_SIZE_sel <= RF_SIZE_word;
+                -- SW
+                if status.IR(14 downto 12) = "010" then
+                    cmd.RF_SIZE_sel <= RF_SIZE_word;
+                -- SB
+                elsif status.IR(14 downto 12) = "000" then
+                    cmd.RF_SIZE_sel <= RF_SIZE_byte;
+                -- SH
+                elsif status.IR(14 downto 12) = "001" then
+                    cmd.RF_SIZE_sel <= RF_SIZE_half;
+                end if;
                 state_d <= S_Pre_Fetch;
 
 ---------- Instructions d'accès aux CSR ----------
