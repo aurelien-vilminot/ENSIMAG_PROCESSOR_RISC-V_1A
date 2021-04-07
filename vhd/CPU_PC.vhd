@@ -214,12 +214,12 @@ begin
                 -------------------------------------------------------------------
                 ------------------------Accès mémoire------------------------------
                 -------------------------------------------------------------------
-                elsif status.IR(6 downto 0) = "0000011" AND status.IR(14 downto 12) = "010" then
+                elsif status.IR(6 downto 0) = "0000011" then
                     cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
                     cmd.PC_sel <= PC_from_pc;
                     cmd.PC_we <= '1';
                     state_d <= S_LW_0;
-                elsif status.IR(6 downto 0) = "0100011" AND status.IR(14 downto 12) = "010" then
+                elsif status.IR(6 downto 0) = "0100011" then
                     cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
                     cmd.PC_sel <= PC_from_pc;
                     cmd.PC_we <= '1';
@@ -562,7 +562,24 @@ begin
             -- On écrit dans les registres
                 cmd.DATA_sel <= DATA_from_mem;
                 cmd.RF_we <= '1';
-                cmd.RF_SIZE_sel <= RF_SIZE_word;
+                -- LW
+                if status.IR(14 downto 12) = "010" then
+                    cmd.RF_SIZE_sel <= RF_SIZE_word;
+                -- LB
+                elsif status.IR(14 downto 12) = "000" then
+                    cmd.RF_SIZE_sel <= RF_SIZE_byte;
+                -- LBU
+                elsif status.IR(14 downto 12) = "100" then
+                    cmd.RF_SIZE_sel <= RF_SIZE_byte;
+                    cmd.RF_SIGN_ENABLE <= '1';
+                -- LH
+                elsif status.IR(14 downto 12) = "001" then
+                    cmd.RF_SIZE_sel <= RF_SIZE_half;
+                -- LHU
+                elsif status.IR(14 downto 12) = "101" then
+                    cmd.RF_SIZE_sel <= RF_SIZE_half;
+                    cmd.RF_SIGN_ENABLE <= '1';
+                end if;
                 state_d <= S_Pre_Fetch;
 
 ---------- Instructions de sauvegarde en mémoire ----------
@@ -582,7 +599,16 @@ begin
 
             when S_SW_2 =>
                 cmd.RF_SIGN_enable <= '0';
-                cmd.RF_SIZE_sel <= RF_SIZE_word;
+                -- SW
+                if status.IR(14 downto 12) = "010" then
+                    cmd.RF_SIZE_sel <= RF_SIZE_word;
+                -- SB
+                elsif status.IR(14 downto 12) = "000" then
+                    cmd.RF_SIZE_sel <= RF_SIZE_byte;
+                -- SH
+                elsif status.IR(14 downto 12) = "001" then
+                    cmd.RF_SIZE_sel <= RF_SIZE_half;
+                end if;
                 state_d <= S_Pre_Fetch;
 
 ---------- Instructions d'accès aux CSR ----------
