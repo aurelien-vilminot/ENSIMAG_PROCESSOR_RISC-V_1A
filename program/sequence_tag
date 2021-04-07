@@ -25,3 +25,9 @@ SLT
 SLTI
 LW
 SW
+LB
+LH
+LBU
+LHU
+SH
+SB
