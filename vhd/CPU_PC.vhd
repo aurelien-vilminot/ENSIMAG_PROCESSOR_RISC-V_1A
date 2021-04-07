@@ -37,7 +37,9 @@ architecture RTL of CPU_PC is
         S_BEQ, S_BNE, S_BLT, S_BGE, S_BLTU, S_BGEU,
         S_AUIPC,
         -- Comparaisons
-        S_SLT,S_SLTI
+        S_SLT,S_SLTI,
+        -- Accès mémoire 
+        S_LW_0, S_LW_1, S_LW_2, S_SW_0, S_SW_1, S_SW_2
     );
 
     signal state_d, state_q : State_type;
@@ -207,6 +209,19 @@ begin
                     elsif status.IR(14 downto 12) = "111" then
                         state_d <= S_BGEU;
                     end if;  
+                -------------------------------------------------------------------
+                ------------------------Accès mémoire------------------------------
+                -------------------------------------------------------------------
+                elsif status.IR(6 downto 0) = "0000011" AND status.IR(14 downto 12) = "010" then
+                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
+                    cmd.PC_sel <= PC_from_pc;
+                    cmd.PC_we <= '1';
+                    state_d <= S_LW_0;
+                elsif status.IR(6 downto 0) = "0100011" AND status.IR(14 downto 12) = "010" then
+                    cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
+                    cmd.PC_sel <= PC_from_pc;
+                    cmd.PC_we <= '1';
+                    state_d <= S_SW_0;
                 -------------------------------------------------------------------
                 -------------------------------------------------------------------          
                 else
@@ -517,7 +532,45 @@ begin
 
 ---------- Instructions de chargement à partir de la mémoire ----------
 
+            when S_LW_0 =>
+            -- On charge l'adresse de la mémoire
+                cmd.AD_Y_sel <= AD_Y_immI;
+                cmd.AD_we <= '1';
+                state_d <= S_LW_1;
+
+            when S_LW_1 =>
+            -- On accède à la mémoire
+                cmd.ADDR_sel <= ADDR_from_ad;
+                cmd.mem_ce <= '1';
+                cmd.mem_we <= '0';
+                state_d <= S_LW_2;
+
+            when S_LW_2 =>
+            -- On écrit dans les registres
+                cmd.DATA_sel <= DATA_from_mem;
+                cmd.RF_we <= '1';
+                cmd.RF_SIZE_sel <= RF_SIZE_word;
+                state_d <= S_Pre_Fetch;
+
 ---------- Instructions de sauvegarde en mémoire ----------
+
+            when S_SW_0 =>
+            -- On charge l'adresse
+                cmd.AD_Y_sel <= AD_Y_immS;
+                cmd.AD_we <= '1';
+                state_d <= S_SW_1;
+
+            when S_SW_1 =>
+            -- On écrit le contenu de rs2
+                cmd.ADDR_sel <= ADDR_from_ad;
+                cmd.mem_ce <= '1';
+                cmd.mem_we <= '1';
+                state_d <= S_SW_2;
+
+            when S_SW_2 =>
+                cmd.RF_SIGN_enable <= '0';
+                cmd.RF_SIZE_sel <= RF_SIZE_word;
+                state_d <= S_Pre_Fetch;
 
 ---------- Instructions d'accès aux CSR ----------
 
