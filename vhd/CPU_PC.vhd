@@ -37,7 +37,7 @@ architecture RTL of CPU_PC is
         S_BEQ, S_BNE, S_BLT, S_BGE, S_BLTU, S_BGEU,
         S_AUIPC,
         -- Comparaisons
-        S_SLT,S_SLTI,
+        S_SLT, S_SLTI,
         -- Accès mémoire 
         S_LW_0, S_LW_1, S_LW_2, S_SW_0, S_SW_1, S_SW_2
     );
@@ -179,6 +179,8 @@ begin
                         state_d <= S_ANDI;
                     elsif status.IR(14 downto 12) = "100" then
                         state_d <= S_XORI;
+                    elsif status.IR(14 downto 12) = "010" then
+                        state_d <= S_SLTI;
                     elsif status.IR(31 downto 25) = "0000000" then
                         if status.IR(14 downto 12) = "001" then
                             state_d <= S_SLLI;
@@ -493,6 +495,17 @@ begin
                 cmd.DATA_sel <= DATA_from_slt;
                 cmd.RF_we <= '1';
                 cmd.ALU_Y_sel <= ALU_Y_rf_rs2;
+
+                cmd.ADDR_sel <= ADDR_from_pc;
+                cmd.mem_ce <= '1';
+                cmd.mem_we <= '0';
+
+                state_d <= S_Fetch;      
+            
+            when S_SLTI =>
+                cmd.DATA_sel <= DATA_from_slt;
+                cmd.RF_we <= '1';
+                cmd.ALU_Y_sel <= ALU_Y_immI;
 
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
