@@ -37,7 +37,7 @@ architecture RTL of CPU_PC is
         S_BEQ, S_BNE, S_BLT, S_BGE, S_BLTU, S_BGEU,
         S_AUIPC, S_JAL, S_JALR,
         -- Comparaisons
-        S_SLT, S_SLTI,
+        S_SLT, S_SLTI, S_SLTIU, S_SLTU,
         -- Accès mémoire 
         S_LW_0, S_LW_1, S_LW_2, S_SW_0, S_SW_1, S_SW_2
     );
@@ -154,6 +154,8 @@ begin
                             state_d <= S_SLL;
                         elsif status.IR(14 downto 12) = "010" then
                             state_d <= S_SLT;
+                        elsif status.IR(14 downto 12) = "011" then
+                            state_d <= S_SLTU;
                         elsif status.IR(14 downto 12) = "101" then
                             state_d <= S_SRL;
                         end if;
@@ -181,6 +183,8 @@ begin
                         state_d <= S_XORI;
                     elsif status.IR(14 downto 12) = "010" then
                         state_d <= S_SLTI;
+                    elsif status.IR(14 downto 12) = "011" then
+                        state_d <= S_SLTIU;
                     elsif status.IR(31 downto 25) = "0000000" then
                         if status.IR(14 downto 12) = "001" then
                             state_d <= S_SLLI;
@@ -495,7 +499,7 @@ begin
                 cmd.PC_sel <= PC_from_pc;
                 cmd.PC_we <= '1';
 
-            when S_SLT =>
+            when S_SLT|S_SLTU =>
                 cmd.DATA_sel <= DATA_from_slt;
                 cmd.RF_we <= '1';
                 cmd.ALU_Y_sel <= ALU_Y_rf_rs2;
@@ -506,7 +510,7 @@ begin
 
                 state_d <= S_Fetch;      
             
-            when S_SLTI =>
+            when S_SLTI|S_SLTIU =>
                 cmd.DATA_sel <= DATA_from_slt;
                 cmd.RF_we <= '1';
                 cmd.ALU_Y_sel <= ALU_Y_immI;
@@ -515,7 +519,8 @@ begin
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
 
-                state_d <= S_Fetch;            
+                state_d <= S_Fetch;
+                
 
 ---------- Instructions de saut ----------
 
