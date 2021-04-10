@@ -588,17 +588,17 @@ begin
                 -- LB
                 elsif status.IR(14 downto 12) = "000" then
                     cmd.RF_SIZE_sel <= RF_SIZE_byte;
+                    cmd.RF_SIGN_ENABLE <= '1';
                 -- LBU
                 elsif status.IR(14 downto 12) = "100" then
                     cmd.RF_SIZE_sel <= RF_SIZE_byte;
-                    cmd.RF_SIGN_ENABLE <= '1';
                 -- LH
                 elsif status.IR(14 downto 12) = "001" then
                     cmd.RF_SIZE_sel <= RF_SIZE_half;
+                    cmd.RF_SIGN_ENABLE <= '1';
                 -- LHU
                 elsif status.IR(14 downto 12) = "101" then
                     cmd.RF_SIZE_sel <= RF_SIZE_half;
-                    cmd.RF_SIGN_ENABLE <= '1';
                 end if;
                 state_d <= S_Pre_Fetch;
 
