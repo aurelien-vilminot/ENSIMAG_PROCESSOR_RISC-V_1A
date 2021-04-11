@@ -618,7 +618,6 @@ begin
                 state_d <= S_SW_2;
 
             when S_SW_2 =>
-                cmd.RF_SIGN_enable <= '0';
                 -- SW
                 if status.IR(14 downto 12) = "010" then
                     cmd.RF_SIZE_sel <= RF_SIZE_word;
