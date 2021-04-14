@@ -2,11 +2,11 @@
 	.text
 
     lui x31, 0
-    lui x29, 0x12344
-    lui x30, 0x12345
+    lui x29, 0xe2344
+    lui x30, 0xe2345
     bgeu x29, x30, test_bgeu1
     addi x31, x31, 0x002
-    lui x29, 0x12345
+    lui x29, 0xe2345
     bgeu x29, x30, test_bgeu2
     addi x31, x31, 0x002
 
@@ -15,7 +15,7 @@ test_bgeu1:
 
 test_bgeu2:
     addi x31, x31, 0x003
-    lui x30, 0x12346
+    lui x30, 0xe2346
     bgeu x30, x29, test_bgeu3
     addi x31, x31, 0x001
 
