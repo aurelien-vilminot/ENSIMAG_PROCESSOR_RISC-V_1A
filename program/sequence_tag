@@ -15,8 +15,6 @@ BEQ
 BNE
 BLT
 BGE
-BGEU
-BLTU
 XORI
 SLLI
 SRL
@@ -31,4 +29,7 @@ LW
 SW
 JAL
 JALR
-compteur
+LB
+LBU
+LH
+LHU
