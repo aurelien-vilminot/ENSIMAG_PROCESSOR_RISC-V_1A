@@ -8,9 +8,9 @@ struct cellule_t {
    struct cellule_t *suiv;
 };
 
-void liste_au_carre(struct cellule_t **l, int32_t tab[]);
-bool find_in_tab(uint32_t tab[], int32_t val);
-void eleve_au_carre(struct cellule_t *l);
+void traitement_liste(struct cellule_t **l, int32_t tab[], uint32_t taille_tab);
+bool find_in_tab(uint32_t tab[], int32_t val, uint32_t taille_tab);
+void mult_par_deux(struct cellule_t *l);
 
 struct cellule_t *decoupe(struct cellule_t *l, struct cellule_t **l1, struct cellule_t **l2);
 
@@ -50,7 +50,7 @@ static void detruit_liste(struct cellule_t *liste)
 
 static void test(int32_t tableau[])
 {
-   const uint32_t taille_tab = 5;
+   const uint32_t taille_tab = 10;
    int32_t tableau_val_a_chercher[taille_tab];
    srandom(0xdeadbeef);
    for (uint32_t i = 0; i < taille_tab - 1; i++) {
@@ -68,7 +68,7 @@ static void test(int32_t tableau[])
    printf("Liste initiale : ");
    affiche_liste(liste);
    
-   liste_au_carre(&liste, tableau_val_a_chercher);
+   traitement_liste(&liste, tableau_val_a_chercher, taille_tab);
    
    printf("Liste modifiée : ");
    affiche_liste(liste);
