@@ -1,4 +1,4 @@
-BINS = chaines tableaux struct rect liste palin 
+BINS = liste 
 
 RVDIR = /matieres/3MMCEP/riscv
 AS = $(RVDIR)/bin/riscv32-unknown-elf-gcc
@@ -27,4 +27,4 @@ OBJS = $(foreach f, $(BINS), $(addsuffix .o, $f)) \
 clean:
 	$(RM) $(BINS) $(OBJS) $(TMPOBJS)
 
-tableaux: tableaux.o fct_tableaux.o
+liste: liste.o fct_liste.o
