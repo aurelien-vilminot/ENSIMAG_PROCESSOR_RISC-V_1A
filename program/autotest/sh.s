@@ -6,7 +6,7 @@
     
     lui x29, 0x1E8
 
-    sb x29, (x30)
+    sh x29, (x30)
     lw x31, (x30)
 
 	# max_cycle 100
