@@ -33,5 +33,6 @@ LBU
 LH
 LHU
 SW
+SB
 JAL
 JALR
