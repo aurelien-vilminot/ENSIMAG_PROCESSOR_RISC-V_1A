@@ -630,7 +630,6 @@ begin
                 end if;
                 state_d <= S_Pre_Fetch;
 
-
 ---------- Instructions d'accès aux CSR ----------
 
             when others => null;
