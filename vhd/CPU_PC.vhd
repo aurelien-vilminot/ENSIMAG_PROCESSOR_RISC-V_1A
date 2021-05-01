@@ -642,11 +642,9 @@ begin
                 -- SB
                 elsif status.IR(14 downto 12) = "000" then
                     cmd.RF_SIZE_sel <= RF_SIZE_byte;
-                    cmd.RF_SIGN_ENABLE <= '1';
                 -- SH
                 elsif status.IR(14 downto 12) = "001" then
                     cmd.RF_SIZE_sel <= RF_SIZE_half;
-                    cmd.RF_SIGN_ENABLE <= '1';
                 end if;
                 state_d <= S_Pre_Fetch;
 
