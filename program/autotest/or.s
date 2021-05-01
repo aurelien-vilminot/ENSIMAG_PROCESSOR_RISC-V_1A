@@ -1,11 +1,14 @@
 # TAG = or
 	.text
 
-    lui x29, 0xfffff
-    lui x30, 0x00000
-    or x31, x30, x29
-    addi x30, x30, 0x001
-    or x31, x31, x30
+    # Parameters
+    lui x5, 0xfffff
+    lui x6, 0x00000
+
+    # Classic tests
+    or x31, x5, x6
+    addi x6, x6, 0x001
+    or x31, x31, x6
 
 	# max_cycle 100
 	# pout_start

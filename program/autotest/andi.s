@@ -1,10 +1,13 @@
 # TAG = andi
 	.text
 
-    lui x2, 0xfffff
-    addi x2, x2, 0x123
-    lui x31, 0
-    andi x31, x2, 0x103
+	# Parameter
+	lui x6, 0xf0f0f
+	addi x6, x6, 0x103
+
+	# Classic tests
+    andi x31, x0, 0x123
+	andi x31, x6, 0x123
 
 	# max_cycle 100
 	# pout_start

@@ -1,8 +1,9 @@
 # TAG = jal
 	.text
-
+    
+    # On cherche à éviter test_jal_a_sauter et la 3eme ins.s
     lui x31, 0
-    jal x30, test_jal
+    jal x31, test_jal
     addi x31, x31, 0x002
 
 test_jal_a_sauter:
@@ -10,11 +11,10 @@ test_jal_a_sauter:
 
 test_jal:
     addi x31, x31, 0x001
-    addi x31, x30, 0
 
 	# max_cycle 100
 	# pout_start
     # 00000000
-    # 00000001
     # 00001008
+    # 00001009
 	# pout_end
