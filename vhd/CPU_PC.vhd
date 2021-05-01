@@ -39,7 +39,9 @@ architecture RTL of CPU_PC is
         -- Comparaisons
         S_SLT, S_SLTI, S_SLTIU, S_SLTU,
         -- Accès mémoire 
-        S_LW_0, S_LW_1, S_LW_2, S_SW_0, S_SW_1, S_SW_2
+        S_LW_0, S_LW_1, S_LW_2, S_SW_0, S_SW_1, S_SW_2,
+        -- Interruptions
+        S_CSR, S_mret
     );
 
     signal state_d, state_q : State_type;
@@ -71,8 +73,7 @@ begin
 
         cmd.RF_we             <= '0';
         cmd.RF_SIZE_sel       <= UNDEFINED;
-        cmd.RF_SIGN_enable    <= '0';
-        cmd.DATA_sel          <= UNDEFINED;
+        cmd.RF_SIGN_enable    <= '0';            
 
         cmd.PC_we             <= '0';
         cmd.PC_sel            <= UNDEFINED;
@@ -102,7 +103,6 @@ begin
 
         cmd.cs.CSR_WRITE_mode    <= UNDEFINED;
 
-        state_d <= state_q;
 
         case state_q is
             when S_Error =>
@@ -126,7 +126,23 @@ begin
             when S_Fetch =>
                 -- IR <- mem_datain
                 cmd.IR_we <= '1';
-                state_d <= S_Decode;
+                if status.IT then
+                    -- Save pc in mepc
+                    cmd.cs.MEPC_sel <= MEPC_from_pc;
+                    cmd.cs.CSR_we <= CSR_mepc;
+                    -- Masque autres interruptions
+                    cmd.cs.MSTATUS_mie_reset <= '1';
+                    cmd.cs.MSTATUS_mie_set <= '0';
+                    -- Autre
+                    cmd.PC_sel <= PC_mtvec;
+                    cmd.PC_we <= '1';
+                    -- Charger le vecteur qui traite l'interruption 
+                
+                    state_d <= S_Pre_Fetch;
+
+                else
+                    state_d <= S_Decode;
+                end if;
 
             when S_Decode =>
                 if status.IR(6 downto 0) = "0110111" then
@@ -233,7 +249,9 @@ begin
                     cmd.PC_we <= '1';
                     state_d <= S_SW_0;
                 -------------------------------------------------------------------
-                -------------------------------------------------------------------          
+                -------------------------------------------------------------------   
+                elsif status.IR(6 downto 0) = "1110011" then
+                        state_d <= S_CSR;
                 else
                     state_d <= S_Error;
                 end if;
@@ -348,6 +366,7 @@ begin
 
                 -- next state
                 state_d <= S_Fetch;
+
             when S_ORI =>
                 --rd <- rs1 + imm
                 cmd.ALU_Y_sel <= ALU_Y_immI;
@@ -548,6 +567,7 @@ begin
                 cmd.PC_sel <= PC_from_pc;
                 cmd.PC_we <= '1';
                 state_d <= S_Pre_Fetch;
+
             when S_JALR =>
                 -- rd <= pc + 4
                 cmd.PC_X_sel <= PC_X_pc;
@@ -631,10 +651,54 @@ begin
                 state_d <= S_Pre_Fetch;
 
 ---------- Instructions d'accès aux CSR ----------
+            when S_CSR =>
+                if status.IR(14) = '1' then
+                    cmd.cs.TO_CSR_sel <= TO_CSR_from_imm;
+                else 
+                    cmd.cs.TO_CSR_sel <= TO_CSR_from_rs1;       
+                end if;
+
+                if status.IR(13 downto 12) = "01" then
+                    cmd.cs.CSR_WRITE_mode <= WRITE_mode_simple;
+                elsif status.IR(13 downto 12) = "10" then
+                    cmd.cs.CSR_WRITE_mode <= WRITE_mode_set;
+                elsif status.IR(13 downto 12) = "11" then
+                    cmd.cs.CSR_WRITE_mode <= WRITE_mode_clear;
+                end if;
+
+                if status.IR(31 downto 20) = "001100000000" then
+                    cmd.cs.CSR_sel <= CSR_from_mstatus;
+                    cmd.cs.CSR_we <= CSR_mstatus;
+                elsif status.IR(31 downto 20) = "001100000101" then
+                    cmd.cs.CSR_sel <= CSR_from_mtvec;
+                    cmd.cs.CSR_we <= CSR_mtvec;
+                elsif status.IR(31 downto 20) = "001100000100" then
+                    cmd.cs.CSR_sel <= CSR_from_mie;
+                    cmd.cs.CSR_we <= CSR_mie;
+                elsif status.IR(31 downto 20) = "001101000001" then
+                    cmd.cs.CSR_sel <= CSR_from_mepc;
+                    cmd.cs.MEPC_sel <= MEPC_from_csr;
+                    cmd.cs.CSR_we <= CSR_mepc;
+                elsif status.IR(31 downto 20) = "001101000100" then
+                    cmd.cs.CSR_sel <= CSR_from_mip;
+                elsif status.IR(31 downto 20) = "001101000010" then
+                    cmd.cs.CSR_sel <= CSR_from_mcause;
+                end if;
+                cmd.DATA_sel <= DATA_from_csr;
+                cmd.RF_we <= '1'; 
+                state_d <= S_mret;
+
+            when S_mret =>
+                -- PC reçoit mepc
+                cmd.PC_sel <= PC_from_mepc;
+                cmd.PC_we <= '1';
+                -- Démasque
+                cmd.cs.MSTATUS_mie_reset <= '0';
+                cmd.cs.MSTATUS_mie_set <= '1';
+                state_d <= S_Pre_Fetch; 
 
             when others => null;
+
         end case;
-
     end process FSM_comb;
-
 end architecture;
