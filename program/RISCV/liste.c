@@ -50,7 +50,7 @@ static void detruit_liste(struct cellule_t *liste)
 
 static void test(int32_t tableau[])
 {
-   const uint32_t taille_tab = 10;
+   const uint32_t taille_tab = 4;
    int32_t tableau_val_a_chercher[taille_tab];
    srandom(0xdeadbeef);
    for (uint32_t i = 0; i < taille_tab - 1; i++) {
