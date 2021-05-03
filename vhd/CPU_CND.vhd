@@ -20,8 +20,6 @@ architecture RTL of CPU_CND is
     signal ext : std_logic;
     signal z : std_logic;
     signal s : std_logic;
-    -- signal rs1_ext : signed(32 downto 0);
-    -- signal ALU_Y_ext : signed(32 downto 0);
     signal res : signed(32 downto 0);
 
 
@@ -33,17 +31,5 @@ s <= res(32);
 z <= '1' when res=0 else '0';
 jcond <= ((IR(12) XOR z) AND (NOT IR(14))) OR ((IR(12) XOR s) AND IR(14));
 slt <= s;
-
-
-    -- -- Notre partie
-    -- ext <= (NOT(IR(12)) AND NOT(IR(6))) OR (NOT(IR(13)) AND IR(6));
-    -- rs1_ext <= signed('1'&rs1) when ext='1' AND rs1(31)='1' else signed('0'&rs1);
-    -- ALU_Y_ext <= signed('1'&alu_y) when ext ='1' AND rs1(31)='1' else signed('0'&alu_y);
-	-- -- A relire ce qui est au dessus, s'assurer que c'est bon !!!!!!
-    -- res <= rs1_ext - ALU_Y_ext;
-    -- z <= '1' when res=0 else '0';
-    -- s <= res(32);
-    -- jcond <= ((IR(12) XOR z) AND NOT(IR(14))) OR ((IR(12) XOR s) AND IR(14));
-    -- slt <= s;
 
 end architecture;

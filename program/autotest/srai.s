@@ -1,23 +1,21 @@
 # TAG = srai
 	.text
 
-    lui x31, 0
-    lui x31, 0xfffff
-    srai x31, x31, 0x001
+    # Parameters
+    lui x29, 0xfffff
 
-    srai x31, x31, 0x00a
+    # Basic tests
+    srai x31, x29, 1     
+    srai x31, x31, 10
 
-    lui x31, 0
+    # More
     lui x31, 0x0ffff
-    srai x31, x31, 0x00a
+    srai x31, x31, 10
 
 	# max_cycle 100
 	# pout_start
-    # 00000000
-    # fffff000
     # fffff800
     # fffffffe
-    # 00000000
     # 0ffff000
     # 0003fffc
 	# pout_end

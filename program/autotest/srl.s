@@ -1,20 +1,22 @@
 # TAG = srl
 	.text
 
-	lui x30, 0       #Test chargement d'une valeur nulle
+    # Parameters
+	lui x30, 0       
     addi x30, x30, 0x001
-    lui x31, 0
-    lui x31, 0xfffff
+    lui x29, 0xfffff
+
+    # Basic tests
+    srl x31, x29, x30      
+    addi x30, x30, 0x009
     srl x31, x31, x30
 
-    lui x30, 0       
-    addi x30, x30, 0x00a
+    # More 
     srl x31, x31, x30
 
 	# max_cycle 100
 	# pout_start
-    # 00000000
-    # fffff000
     # 7ffff800
     # 001ffffe
+    # 000007ff
 	# pout_end

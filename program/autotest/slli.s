@@ -1,15 +1,22 @@
 # TAG = slli
-	.text
 
-    lui x31, 0
-    lui x31, 0xfffff
-    slli x31, x31, 0x001
-    slli x31, x31, 0x00c
+	.text
+    # Parameters
+    lui x29, 0xfffff
+
+    # Basic tests
+    slli x31, x29, 1
+    slli x31, x29, 8  
+
+    # More complicated
+    lui x31, 0x80000
+    sll x31, x31, 1
+
 
 	# max_cycle 100
 	# pout_start
-    # 00000000
-    # fffff000
     # ffffe000
-    # fe000000
+    # fff00000
+    # 80000000
+    # 00000000
 	# pout_end

@@ -1,36 +1,32 @@
 ####### Projet CEP #######
 Année : 2020-2021
-Étudiants : Aurélien VILMINOT, Pierre Arvy
+Étudiants : Aurélien VILMINOT G8, Pierre ARVY G6
 
-# Conception des Processeurs
+### Conception Processeur ###
 
-A l'issue de ce projet, nous avons réalisé l'ensemble des instructions typique demandés dans les objectifs par séance.
-De plus, nous avons pris le soin d'implémenter toutes les déclinaisons de ces différentes instructions à travers la PO et la PC.
-Ainsi, notre projet contient les familles suivantes :
-- Arithmétiques
-- Basiques
-- Divers
-- Logiques
-- Décalages
-- Sets
-- Branchements
-- Sauts
-- Loads
-- Stores
-- Interruptions
+L'ensemble des étapes des quatres premières séances sont validées. Ainsi, notre rendu contient l'ensemble des familles d'instructions demandées,
+exceptées les interruptions. Nous n'avons pas réussi à implémenter la PO chargée de les gérer. Par conséquent, nous avons commenté le début 
+d'implémentation du fichier CPU_CSR.vhd, et avons débuté l'implémentation de son traitement dans la PC.
 
-Bien entendu, nous avons réalisé l'ensemble des tests pour chacunes des instructions implémentés. 
-Ces tests ont tous été validés par le mécanisme mis en place sur GitLab.
+Les tests des instructions sont les plus complets possibles, et testent les cas particuliers qu'il est possible de rencontrer (overflow pour une
+addition, comparaison non-signée...). Aspirant à devenir ingénieurs, nous nous sommes imposés un coding-style strict, le code a été factorisé 
+autant que possible, et les commentaires sont en anglais.
 
-# Exploitation des Processeurs
+### Exploitation Processeur ###
 
-Pour cette partie du projet, nous avons effectué une traduction systématique d'une fonction écrite par nos en C vers de l'assembleur. 
+Pour la partie "Expoitation Processeur", nous avons traduit de manière systématique une fonction écrite par nos soins en C, et vers de l'assembleur. 
 L'ensemble du code est disponible dans le dossier program/RISCV/
 
-Il s'agit d'une fonction possèdant en paramètre une liste chaînées, un tableau et la taille de ce dernier. 
+Exécution du programme :
+La fonction possède en paramètre une liste chaînée, un tableau et la taille de ce dernier. 
 Le programme effectue un parcours de la liste. Pour chaque valeur, un test de présence de cette dernière dans le tableau est effectué. 
 Si ce test est bon, alors la valeur de la cellule concernée est multipliée par deux.
 
-Ce programme n'a, certes, pas beaucoup de sens mais il regroupe l'ensemble des éléments vus pendant les TD, à savoir : 
+Commentaires :
+Le programme n'a pas beaucoup de sens, mais selon-nous il regroupe l'ensemble des éléments vus pendant les TD, à savoir : 
 les listes, les structures, les pointeurs, les boucles (for, while), les conditions (if) ainsi que les appels de fonctions et 
 la gestion de la pile.
+
+### Le mot de la fin ###
+
+Merci et bon courage au relecteur de ce projet.

@@ -23,22 +23,22 @@ end entity;
 
 architecture RTL of CPU_PC is
     type State_type is (
-        -- Etats de base de l'automate
+        -- Basic state
         S_Error, S_Init, S_Pre_Fetch, S_Fetch, S_Decode,
-        -- Chargement d'état
+        -- Load immediate
         S_LUI,
-        -- ALU sans IMM
+        -- ALU Without IMM
         S_ADD, S_SUB, S_AND, S_OR, S_XOR,
-        -- ALU avec IMM
+        -- ALU With IMM
         S_ORI, S_XORI, S_ANDI, S_ADDI,
-        -- Décalages
+        -- Shifts
         S_SLL, S_SLLI, S_SRL, S_SRLI, S_SRA, S_SRAI,
-        -- Sauts
+        -- Connection and jump
         S_BEQ, S_BNE, S_BLT, S_BGE, S_BLTU, S_BGEU,
         S_AUIPC, S_JAL, S_JALR,
-        -- Comparaisons
+        -- Comparisons
         S_SLT, S_SLTI, S_SLTIU, S_SLTU,
-        -- Accès mémoire 
+        -- Memory Access 
         S_LW_0, S_LW_1, S_LW_2, S_SW_0, S_SW_1, S_SW_2,
         -- Interruptions
         S_CSR, S_mret
@@ -63,7 +63,7 @@ begin
     FSM_comb : process (state_q, status)
     begin
 
-        -- Valeurs par défaut de cmd à définir selon les préférences de chacun
+        -- Default values
         cmd.ALU_op            <= UNDEFINED;
         cmd.LOGICAL_op        <= UNDEFINED;
         cmd.ALU_Y_sel         <= UNDEFINED;
@@ -106,8 +106,6 @@ begin
 
         case state_q is
             when S_Error =>
-                -- Etat transitoire en cas d'instruction non reconnue 
-                -- Aucune action
                 state_d <= S_Init;
 
             when S_Init =>
@@ -130,16 +128,14 @@ begin
                     -- Save pc in mepc
                     cmd.cs.MEPC_sel <= MEPC_from_pc;
                     cmd.cs.CSR_we <= CSR_mepc;
-                    -- Masque autres interruptions
+                    -- Mask other interruptions
                     cmd.cs.MSTATUS_mie_reset <= '1';
                     cmd.cs.MSTATUS_mie_set <= '0';
-                    -- Autre
+                    -- Other
                     cmd.PC_sel <= PC_mtvec;
                     cmd.PC_we <= '1';
-                    -- Charger le vecteur qui traite l'interruption 
-                
+                    -- Load vector of interruption
                     state_d <= S_Pre_Fetch;
-
                 else
                     state_d <= S_Decode;
                 end if;
@@ -151,7 +147,7 @@ begin
                     cmd.PC_we <= '1';
                     state_d <= S_LUI;
                 -------------------------------------------------------------------
-                -----------------Arithm, logique, décalages sans IMM---------------
+                -------------------Arithm, logic, shits without IMM----------------
                 -------------------------------------------------------------------
                 elsif status.IR(6 downto 0) = "0110011"  then
                     cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
@@ -183,7 +179,7 @@ begin
                         end if;
                     end if;
                 -------------------------------------------------------------------
-                ----------------Arithm, logique, décalages avec IMM----------------
+                ------------------Arithm, logic, shifts with IMMèè-----------------
                 -------------------------------------------------------------------
                 elsif status.IR(6 downto 0) = "0010011" then
                     cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
@@ -213,7 +209,7 @@ begin
                         end if;
                     end if;
                 -------------------------------------------------------------------
-                ------------------------------Sauts -------------------------------
+                ------------------------------- Jump ------------------------------
                 -------------------------------------------------------------------
                 elsif status.IR(6 downto 0) = "0010111" then
                     state_d <= S_AUIPC;
@@ -236,7 +232,7 @@ begin
                 elsif status.IR(6 downto 0) = "1100111" then
                     state_d <= S_JALR;
                 -------------------------------------------------------------------
-                ------------------------Accès mémoire------------------------------
+                ------------------------Memory Access------------------------------
                 -------------------------------------------------------------------
                 elsif status.IR(6 downto 0) = "0000011" then
                     cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
@@ -256,10 +252,7 @@ begin
                     state_d <= S_Error;
                 end if;
 
-                -- Décodage effectif des instructions,
-                -- à compléter par vos soins
-
----------- Instructions avec immediat de type U ----------
+---------- Instructions with immediat of type U ----------
 
             when S_LUI =>
                 -- rd <- ImmU + 0
@@ -275,7 +268,7 @@ begin
 
                 -- next state
                 state_d <= S_Fetch;
----------- Instructions arithmétiques et logiques ----------
+---------- Arithmetic/Logic Instructions ----------
 
             when S_ADDI =>
                 --rd <- rs1 + imm
@@ -284,7 +277,7 @@ begin
                 cmd.DATA_sel <= DATA_from_alu;
                 cmd.RF_we <= '1';
 
-                -- lecture mem[PC]
+                -- mem[PC] reading
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
@@ -299,7 +292,7 @@ begin
                 cmd.DATA_sel <= DATA_from_alu;
                 cmd.RF_we <= '1';
 
-                -- lecture mem[PC]
+                -- mem[PC] reading
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
@@ -314,7 +307,7 @@ begin
                 cmd.DATA_sel <= DATA_from_alu;
                 cmd.RF_we <= '1';
         
-                -- lecture mem[PC]
+                -- mem[PC] reading
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
@@ -344,7 +337,7 @@ begin
                 cmd.DATA_sel <= DATA_from_logical;
                 cmd.RF_we <= '1';
 
-                -- lecture mem[PC]
+                -- mem[PC] reading
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
@@ -359,7 +352,7 @@ begin
                 cmd.DATA_sel <= DATA_from_logical;
                 cmd.RF_we <= '1';
 
-                -- lecture mem[PC]
+                -- mem[PC] reading
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
@@ -374,7 +367,7 @@ begin
                 cmd.DATA_sel <= DATA_from_logical;
                 cmd.RF_we <= '1';
 
-                -- lecture mem[PC]
+                -- mem[PC] reading
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
@@ -390,7 +383,7 @@ begin
                 cmd.DATA_sel <= DATA_from_logical;
                 cmd.RF_we <= '1';
 
-                -- lecture mem[PC]
+                -- mem[PC] reading
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
@@ -405,7 +398,7 @@ begin
                 cmd.DATA_sel <= DATA_from_logical;
                 cmd.RF_we <= '1';
 
-                -- lecture mem[PC]
+                -- mem[PC] reading
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
@@ -414,13 +407,13 @@ begin
                 state_d <= S_Fetch;
 
             when S_SLL =>
-                --decalage à gauche, rd reçoit rs1 << rs2
+                --left shifting, rd <- rs1 << rs2
                 cmd.SHIFTER_Y_sel <= SHIFTER_Y_rs2;
                 cmd.SHIFTER_op <= SHIFT_ll;
                 cmd.DATA_sel <= DATA_from_shifter;
                 cmd.RF_we <= '1';
 
-                -- lecture mem[PC]
+                -- mem[PC] reading
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
@@ -429,13 +422,13 @@ begin
                 state_d <= S_Fetch;
             
             when S_SLLI =>
-                --decalage à gauche, rd reçoit rs1 << imm
+                --left shifting, rd <- rs1 << imm
                 cmd.SHIFTER_Y_sel <= SHIFTER_Y_ir_sh;
                 cmd.SHIFTER_op <= SHIFT_ll;
                 cmd.DATA_sel <= DATA_from_shifter;
                 cmd.RF_we <= '1';
 
-                -- lecture mem[PC]
+                -- mem[PC] reading
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
@@ -444,13 +437,13 @@ begin
                 state_d <= S_Fetch;
 
             when S_SRL =>
-                --decalage à droite, rd reçoit rs1 >> rs2
+                -- right shifting, rd <- rs1 >> rs2
                 cmd.SHIFTER_Y_sel <= SHIFTER_Y_rs2;
                 cmd.SHIFTER_op <= SHIFT_rl;
                 cmd.DATA_sel <= DATA_from_shifter;
                 cmd.RF_we <= '1';
 
-                -- lecture mem[PC]
+                -- mem[PC] reading
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
@@ -459,13 +452,13 @@ begin
                 state_d <= S_Fetch;
 
             when S_SRLI =>
-                --decalage à droite, rd reçoit rs1 >> imm
+                -- right shifting, rd <- rs1 >> imm
                 cmd.SHIFTER_Y_sel <= SHIFTER_Y_ir_sh;
                 cmd.SHIFTER_op <= SHIFT_rl;
                 cmd.DATA_sel <= DATA_from_shifter;
                 cmd.RF_we <= '1';
 
-                -- lecture mem[PC]
+                -- mem[PC] reading
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
@@ -474,13 +467,13 @@ begin
                 state_d <= S_Fetch;
 
             when S_SRA =>
-                --decalage à droite arithmétique, rd reçoit rs1 >> rs2
+                -- right arithmetic shifting rd <- rs1 >>rs2
                 cmd.SHIFTER_Y_sel <= SHIFTER_Y_rs2;
                 cmd.SHIFTER_op <= SHIFT_ra;
                 cmd.DATA_sel <= DATA_from_shifter;
                 cmd.RF_we <= '1';
 
-                -- lecture mem[PC]
+                -- mem[PC] reading
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
@@ -489,13 +482,13 @@ begin
                 state_d <= S_Fetch;
             
             when S_SRAI =>
-                --decalage à droite arithmétique, rd reçoit rs1 >> imm
+                -- right arithmetic shifting, rd <- rs1 >> imm
                 cmd.SHIFTER_Y_sel <= SHIFTER_Y_ir_sh;
                 cmd.SHIFTER_op <= SHIFT_ra;
                 cmd.DATA_sel <= DATA_from_shifter;
                 cmd.RF_we <= '1';
 
-                -- lecture mem[PC]
+                -- mem[PC] reading
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
@@ -504,16 +497,15 @@ begin
                 state_d <= S_Fetch;
 
             when S_AUIPC =>
-                --decalage à gauche, rd reçoit rs1 << rs2
                 cmd.PC_X_sel <= PC_X_pc;
                 cmd.PC_Y_sel <= PC_Y_immU;
                 cmd.DATA_sel <= DATA_from_pc;
                 cmd.RF_we <= '1';
                 
-                --next state
+                -- mem[PC] reading
                 state_d <= S_Pre_Fetch;
 
-                --On oublie pas d'incrémenter PC
+                --Don't forget to increase pc
                 cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
                 cmd.PC_sel <= PC_from_pc;
                 cmd.PC_we <= '1';
@@ -541,7 +533,7 @@ begin
                 state_d <= S_Fetch;
                 
 
----------- Instructions de saut ----------
+---------- Jump Instructions ----------
 
             when S_BEQ|S_BNE|S_BLT|S_BGE|S_BLTU|S_BGEU =>
                 if status.jcond then
@@ -583,23 +575,23 @@ begin
 
 
 
----------- Instructions de chargement à partir de la mémoire ----------
+---------- Loads in memory ----------
 
             when S_LW_0 =>
-            -- On charge l'adresse de la mémoire
+            -- Charge memory address
                 cmd.AD_Y_sel <= AD_Y_immI;
                 cmd.AD_we <= '1';
                 state_d <= S_LW_1;
 
             when S_LW_1 =>
-            -- On accède à la mémoire
+            -- Access memory
                 cmd.ADDR_sel <= ADDR_from_ad;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
                 state_d <= S_LW_2;
 
             when S_LW_2 =>
-            -- On écrit dans les registres
+            -- Write in register
                 cmd.DATA_sel <= DATA_from_mem;
                 cmd.RF_we <= '1';
                 -- LW
@@ -622,16 +614,16 @@ begin
                 end if;
                 state_d <= S_Pre_Fetch;
 
----------- Instructions de sauvegarde en mémoire ----------
+---------- Stores in memory ----------
 
             when S_SW_0 =>
-            -- On charge l'adresse
+            -- Charge address
                 cmd.AD_Y_sel <= AD_Y_immS;
                 cmd.AD_we <= '1';
                 state_d <= S_SW_1;
 
             when S_SW_1 =>
-            -- On écrit le contenu de rs2
+            -- Write the content of rs2
                 cmd.ADDR_sel <= ADDR_from_ad;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '1';
@@ -648,7 +640,8 @@ begin
                 end if;
                 state_d <= S_Pre_Fetch;
 
----------- Instructions d'accès aux CSR ----------
+---------- SCR Access Instructions  ----------
+
             when S_CSR =>
                 if status.IR(14) = '1' then
                     cmd.cs.TO_CSR_sel <= TO_CSR_from_imm;
@@ -687,10 +680,10 @@ begin
                 state_d <= S_mret;
 
             when S_mret =>
-                -- PC reçoit mepc
+                -- PC r<- mepc
                 cmd.PC_sel <= PC_from_mepc;
                 cmd.PC_we <= '1';
-                -- Démasque
+                
                 cmd.cs.MSTATUS_mie_reset <= '0';
                 cmd.cs.MSTATUS_mie_set <= '1';
                 state_d <= S_Pre_Fetch; 
