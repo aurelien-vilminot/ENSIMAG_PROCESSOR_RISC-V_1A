@@ -179,7 +179,7 @@ begin
                         end if;
                     end if;
                 -------------------------------------------------------------------
-                ------------------Arithm, logic, shifts with IMMèè-----------------
+                ------------------Arithm, logic, shifts with IMM-------------------
                 -------------------------------------------------------------------
                 elsif status.IR(6 downto 0) = "0010011" then
                     cmd.TO_PC_Y_sel <= TO_PC_Y_cst_x04;
@@ -261,7 +261,7 @@ begin
                 cmd.RF_we <= '1';
                 cmd.DATA_sel <= DATA_from_pc;
                 
-                -- lecture mem[PC]
+                -- mem[PC] reading
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
@@ -322,7 +322,7 @@ begin
                 cmd.DATA_sel <= DATA_from_logical;
                 cmd.RF_we <= '1';
 
-                -- lecture mem[PC]
+                -- mem[PC] reading
                 cmd.ADDR_sel <= ADDR_from_pc;
                 cmd.mem_ce <= '1';
                 cmd.mem_we <= '0';
@@ -680,7 +680,7 @@ begin
                 state_d <= S_mret;
 
             when S_mret =>
-                -- PC r<- mepc
+                -- PC <- mepc
                 cmd.PC_sel <= PC_from_mepc;
                 cmd.PC_we <= '1';
                 
