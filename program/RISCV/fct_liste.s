@@ -161,3 +161,4 @@ mult_par_deux:
     lw t0, (a0) /* t0 = l->val */
     slli t0, t0, 1 /* $t0 = l->val*2 */
     sw t0, (a0)
+    ret
